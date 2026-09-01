@@ -1,85 +1,303 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enregistreur d'écran - BY NYROX</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      text-align: center;
-    }
+    <title>Enregistreur d'écran - BY NYROX</title>
 
-    .app {
-      max-width: 600px;
-      margin: auto;
-      padding: 30px 20px;
-    }
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    h1 {
-      font-size: 34px;
-      margin-bottom: 10px;
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
 
-    h2 {
-      font-size: 22px;
-      margin-bottom: 35px;
-    }
+        .app {
+            width: 100%;
+            max-width: 650px;
+            margin: auto;
+            padding: 35px 20px;
+        }
 
-    .timer {
-      font-size: 42px;
-      font-weight: bold;
-      margin: 20px;
-    }
+        h1 {
+            font-size: 32px;
+            margin: 10px 0;
+        }
 
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 15px 22px;
-      margin: 8px;
-      font-size: 17px;
-      cursor: pointer;
-    }
+        h2 {
+            font-size: 20px;
+            color: #aaa;
+            margin-bottom: 35px;
+        }
 
-    #start {
-      background: #e53935;
-      color: white;
-    }
+        .timer {
+            font-size: 46px;
+            font-weight: bold;
+            margin: 25px 0;
+        }
 
-    #stop {
-      background: #555;
-      color: white;
-    }
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 15px 22px;
+            margin: 8px;
+            font-size: 17px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
 
-    #stop:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+        #start {
+            background: #e53935;
+        }
 
-    #download {
-      display: none;
-      background: #2196f3;
-      color: white;
-    }
+        #stop {
+            background: #555;
+        }
 
-    #status {
-      margin-top: 25px;
-      font-size: 18px;
-    }
+        #stop:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
-    video {
-      display: none;
-      width: 100%;
-      margin-top: 25px;
-      border-radius: 12px;
-    }
-  </style>
+        #download {
+            display: none;
+            background: #2196f3;
+        }
+
+        #status {
+            margin-top: 25px;
+            font-size: 18px;
+            color: #bbb;
+        }
+
+        video {
+            display: none;
+            width: 100%;
+            margin-top: 25px;
+            border-radius: 12px;
+            background: black;
+        }
+
+        /* IMAGE BY NYROX */
+        .logo-nyrox {
+            display: block;
+            width: 90%;
+            max-width: 700px;
+            margin: 60px auto 20px;
+            border-radius: 12px;
+        }
+
+        .info {
+            margin-top: 20px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
 </head>
 
 <body>
 
-  <
+    <div class="app">
+
+        <h1>🎥 Enregistreur d'écran</h1>
+
+        <h2>BY NYROX</h2>
+
+        <div class="timer" id="timer">00:00</div>
+
+        <button id="start">
+            🔴 Démarrer l'enregistrement
+        </button>
+
+        <button id="stop" disabled>
+            ⏹️ Arrêter
+        </button>
+
+        <button id="download">
+            ⬇️ Télécharger la vidéo
+        </button>
+
+        <div id="status">
+            Prêt à enregistrer
+        </div>
+
+        <video id="preview" controls></video>
+
+        <div class="info">
+            Enregistre ton écran directement depuis ton navigateur.
+        </div>
+
+        <!-- TON IMAGE BY NYROX -->
+        <img
+            src="by-nyrox.png"
+            alt="by nyrox"
+            class="logo-nyrox"
+        >
+
+    </div>
+
+    <script>
+        let recorder = null;
+        let recordedChunks = [];
+        let stream = null;
+        let timerInterval = null;
+        let seconds = 0;
+
+        const startButton = document.getElementById("start");
+        const stopButton = document.getElementById("stop");
+        const downloadButton = document.getElementById("download");
+        const timer = document.getElementById("timer");
+        const status = document.getElementById("status");
+        const preview = document.getElementById("preview");
+
+        function updateTimer() {
+            seconds++;
+
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+
+            timer.textContent =
+                String(minutes).padStart(2, "0") +
+                ":" +
+                String(remainingSeconds).padStart(2, "0");
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            seconds = 0;
+            timer.textContent = "00:00";
+        }
+
+        function finishRecording() {
+
+            if (!recorder || recorder.state === "inactive") {
+                return;
+            }
+
+            recorder.stop();
+
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            clearInterval(timerInterval);
+        }
+
+        startButton.addEventListener("click", async () => {
+
+            try {
+
+                recordedChunks = [];
+
+                stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: true
+                });
+
+                recorder = new MediaRecorder(stream);
+
+                recorder.ondataavailable = (event) => {
+
+                    if (event.data && event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+
+                };
+
+                recorder.onstop = () => {
+
+                    const blob = new Blob(
+                        recordedChunks,
+                        { type: "video/webm" }
+                    );
+
+                    const videoURL = URL.createObjectURL(blob);
+
+                    preview.src = videoURL;
+                    preview.style.display = "block";
+
+                    downloadButton.style.display = "inline-block";
+
+                    downloadButton.onclick = () => {
+
+                        const link = document.createElement("a");
+
+                        link.href = videoURL;
+                        link.download =
+                            "enregistrement-by-nyrox.webm";
+
+                        document.body.appendChild(link);
+
+                        link.click();
+
+                        document.body.removeChild(link);
+                    };
+
+                    status.textContent =
+                        "✅ Enregistrement terminé";
+
+                    resetTimer();
+                };
+
+                recorder.start();
+
+                startButton.disabled = true;
+                stopButton.disabled = false;
+
+                downloadButton.style.display = "none";
+
+                status.textContent =
+                    "🔴 Enregistrement en cours...";
+
+                resetTimer();
+
+                timerInterval =
+                    setInterval(updateTimer, 1000);
+
+                stream.getVideoTracks()[0].addEventListener(
+                    "ended",
+                    () => {
+
+                        if (
+                            recorder &&
+                            recorder.state !== "inactive"
+                        ) {
+                            finishRecording();
+                        }
+
+                    }
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                status.textContent =
+                    "❌ Enregistrement annulé ou impossible";
+
+                startButton.disabled = false;
+                stopButton.disabled = true;
+
+            }
+
+        });
+
+        stopButton.addEventListener("click", () => {
+            finishRecording();
+        });
+    </script>
+
+</body>
+</html>
