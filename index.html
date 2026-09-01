@@ -4,54 +4,82 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enregistreur d'écran - BY NYROX</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    .app {
+      max-width: 600px;
+      margin: auto;
+      padding: 30px 20px;
+    }
+
+    h1 {
+      font-size: 34px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 35px;
+    }
+
+    .timer {
+      font-size: 42px;
+      font-weight: bold;
+      margin: 20px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 15px 22px;
+      margin: 8px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    #start {
+      background: #e53935;
+      color: white;
+    }
+
+    #stop {
+      background: #555;
+      color: white;
+    }
+
+    #stop:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #download {
+      display: none;
+      background: #2196f3;
+      color: white;
+    }
+
+    #status {
+      margin-top: 25px;
+      font-size: 18px;
+    }
+
+    video {
+      display: none;
+      width: 100%;
+      margin-top: 25px;
+      border-radius: 12px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div class="app">
-    <h1>🎥 Enregistreur d'écran</h1>
-    <h2>BY NYROX</h2>
-
-    <div class="timer">00:00</div>
-
-    <button id="start">🔴 Démarrer l'enregistrement</button>
-    <button id="stop" disabled>⏹️ Arrêter</button>
-
-    <p id="status">Prêt à enregistrer</p>
-  </div>
-
-  <script>
-    let recorder;
-    let chunks = [];
-    let timerInterval;
-    let seconds = 0;
-
-    const start = document.getElementById("start");
-    const stop = document.getElementById("stop");
-    const timer = document.querySelector(".timer");
-    const status = document.getElementById("status");
-
-    function updateTimer() {
-      seconds++;
-
-      const minutes = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-
-      timer.textContent =
-        String(minutes).padStart(2, "0") + ":" +
-        String(secs).padStart(2, "0");
-    }
-
-    start.onclick = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true
-        });
-
-        chunks = [];
-
-        recorder = new MediaRecorder(stream);
-
-        recorder.ondataavailable = event => {
-          if (event.data
+  <
