@@ -63,11 +63,6 @@ button {
     font-size: 17px;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.2s;
-}
-
-button:active {
-    transform: scale(0.97);
 }
 
 .start {
@@ -98,14 +93,12 @@ button:active {
     background: #1d1d1d;
     color: #ddd;
     font-size: 15px;
-    line-height: 1.5;
 }
 
 .info {
     color: #999;
     font-size: 14px;
     line-height: 1.5;
-    margin-top: 15px;
 }
 
 .preview {
@@ -134,7 +127,6 @@ button:active {
     .app {
         margin-top: 10px;
         padding: 20px 15px;
-        border-radius: 18px;
     }
 
     h1 {
@@ -163,13 +155,9 @@ button:active {
 
     <h1>🎥 Enregistreur d'écran</h1>
 
-    <div class="by">
-        BY NYROX
-    </div>
+    <div class="by">BY NYROX</div>
 
-    <div class="timer" id="timer">
-        00:00
-    </div>
+    <div class="timer" id="timer">00:00</div>
 
     <button class="start" id="startBtn">
         🔴 Démarrer l'enregistrement
@@ -191,13 +179,350 @@ button:active {
         class="preview"
         id="preview"
         controls
-        playsinline
-    ></video>
+        playsinline>
+    </video>
 
     <div class="info">
-        📱 Sur téléphone, la capture d'écran dépend du navigateur et du système.
+        📱 Compatible téléphone lorsque le navigateur autorise
+        la capture d'écran.
         <br>
-        Appuie sur « Démarrer », puis choisis l'écran à partager.
+        Choisis ton écran après avoir appuyé sur Démarrer.
     </div>
 
-    <!-- LOG
+    <img
+        src="by-nyrox.png"
+        alt="BY NYROX"
+        class="logo-nyrox">
+
+</div>
+
+<script>
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const status = document.getElementById("status");
+const timer = document.getElementById("timer");
+const preview = document.getElementById("preview");
+
+let mediaStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+
+let timerInterval = null;
+let timerStartTime = 0;
+
+let recordedBlob = null;
+
+
+/* =========================
+   MINUTEUR
+========================= */
+
+function startTimer() {
+
+    timerStartTime = Date.now();
+
+    timer.textContent = "00:00";
+
+    clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+
+        const elapsed = Math.floor(
+            (Date.now() - timerStartTime) / 1000
+        );
+
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+
+        timer.textContent =
+            String(minutes).padStart(2, "0") +
+            ":" +
+            String(seconds).padStart(2, "0");
+
+    }, 250);
+}
+
+
+function stopTimer() {
+
+    clearInterval(timerInterval);
+    timerInterval = null;
+}
+
+
+/* =========================
+   FORMAT VIDÉO
+========================= */
+
+function getSupportedMimeType() {
+
+    const types = [
+        "video/webm;codecs=vp9,opus",
+        "video/webm;codecs=vp8,opus",
+        "video/webm",
+        "video/mp4"
+    ];
+
+    for (const type of types) {
+
+        if (
+            typeof MediaRecorder !== "undefined" &&
+            MediaRecorder.isTypeSupported(type)
+        ) {
+            return type;
+        }
+    }
+
+    return "";
+}
+
+
+/* =========================
+   DÉMARRER
+========================= */
+
+startBtn.addEventListener("click", async () => {
+
+    recordedChunks = [];
+    recordedBlob = null;
+
+    downloadBtn.style.display = "none";
+    preview.style.display = "none";
+
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getDisplayMedia
+    ) {
+
+        status.textContent =
+            "❌ La capture d'écran n'est pas prise en charge par ce navigateur.";
+
+        return;
+    }
+
+    if (typeof MediaRecorder === "undefined") {
+
+        status.textContent =
+            "❌ Ton navigateur ne permet pas l'enregistrement vidéo.";
+
+        return;
+    }
+
+    try {
+
+        status.textContent =
+            "📱 Choisis maintenant l'écran à partager...";
+
+
+        mediaStream =
+            await navigator.mediaDevices.getDisplayMedia({
+
+                video: true,
+
+                /* Audio désactivé pour une meilleure
+                   compatibilité avec les téléphones */
+
+                audio: false
+            });
+
+
+        const mimeType = getSupportedMimeType();
+
+        if (!mimeType) {
+
+            status.textContent =
+                "❌ Aucun format vidéo compatible.";
+
+            mediaStream
+                .getTracks()
+                .forEach(track => track.stop());
+
+            return;
+        }
+
+
+        mediaRecorder = new MediaRecorder(
+            mediaStream,
+            {
+                mimeType: mimeType
+            }
+        );
+
+
+        mediaRecorder.ondataavailable = (event) => {
+
+            if (
+                event.data &&
+                event.data.size > 0
+            ) {
+
+                recordedChunks.push(event.data);
+            }
+        };
+
+
+        mediaRecorder.onstop = () => {
+
+            stopTimer();
+
+            if (recordedChunks.length === 0) {
+
+                status.textContent =
+                    "❌ Aucun enregistrement n'a été créé.";
+
+                return;
+            }
+
+
+            recordedBlob = new Blob(
+                recordedChunks,
+                {
+                    type: mimeType
+                }
+            );
+
+
+            const videoURL =
+                URL.createObjectURL(recordedBlob);
+
+            preview.src = videoURL;
+            preview.style.display = "block";
+
+            downloadBtn.style.display = "block";
+
+            status.textContent =
+                "✅ Enregistrement terminé !";
+        };
+
+
+        /* Si l'utilisateur arrête le partage */
+
+        const videoTrack =
+            mediaStream.getVideoTracks()[0];
+
+
+        if (videoTrack) {
+
+            videoTrack.addEventListener(
+                "ended",
+                () => {
+
+                    if (
+                        mediaRecorder &&
+                        mediaRecorder.state !== "inactive"
+                    ) {
+                        mediaRecorder.stop();
+                    }
+
+                    stopTimer();
+
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }
+            );
+        }
+
+
+        /* =========================
+           DÉMARRAGE DE L'ENREGISTREMENT
+        ========================= */
+
+        mediaRecorder.start(1000);
+
+        /* LE MINUTEUR COMMENCE ICI */
+
+        startTimer();
+
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        status.textContent =
+            "🔴 Enregistrement en cours...";
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        stopTimer();
+
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+
+
+        if (error.name === "NotAllowedError") {
+
+            status.textContent =
+                "❌ Capture annulée. Autorise le partage d'écran.";
+
+        } else if (error.name === "NotFoundError") {
+
+            status.textContent =
+                "❌ Aucun écran disponible.";
+
+        } else if (error.name === "NotReadableError") {
+
+            status.textContent =
+                "❌ L'écran ne peut pas être capturé.";
+
+        } else {
+
+            status.textContent =
+                "❌ Enregistrement impossible sur cet appareil.";
+        }
+    }
+
+});
+
+
+/* =========================
+   ARRÊTER
+========================= */
+
+stopBtn.addEventListener("click", () => {
+
+    if (
+        mediaRecorder &&
+        mediaRecorder.state !== "inactive"
+    ) {
+        mediaRecorder.stop();
+    }
+
+
+    if (mediaStream) {
+
+        mediaStream
+            .getTracks()
+            .forEach(track => track.stop());
+
+        mediaStream = null;
+    }
+
+
+    stopTimer();
+
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+});
+
+
+/* =========================
+   TÉLÉCHARGER
+========================= */
+
+downloadBtn.addEventListener("click", () => {
+
+    if (!recordedBlob) {
+        return;
+    }
+
+
+    const url =
+        URL.createObjectURL(recordedBlob);
+
+
+    const extension =
+        recordedBlob.type.includes
