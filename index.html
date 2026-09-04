@@ -1,528 +1,238 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Widget Horloge</title>
 
-<title>Enregistreur d'écran - BY NYROX</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #050505, #151515);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.app {
-    width: 100%;
-    max-width: 700px;
-    background: #111;
-    border: 1px solid #333;
-    border-radius: 22px;
-    padding: 25px;
-    text-align: center;
-    box-shadow: 0 0 35px rgba(0,0,0,0.6);
-}
-
-h1 {
-    margin: 0 0 10px;
-    font-size: 32px;
-}
-
-.by {
-    color: #ff2222;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 25px;
-}
-
-.timer {
-    font-size: 48px;
-    font-weight: bold;
-    margin: 20px 0;
-    letter-spacing: 3px;
-}
-
-button {
-    width: 100%;
-    max-width: 400px;
-    padding: 16px;
-    margin: 8px auto;
-    border: none;
-    border-radius: 14px;
-    font-size: 17px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.start {
-    background: #e50914;
-    color: white;
-}
-
-.stop {
-    background: #333;
-    color: white;
-}
-
-.stop:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.download {
-    background: #1683ff;
-    color: white;
-    display: none;
-}
-
-.status {
-    margin: 18px 0;
-    padding: 13px;
-    border-radius: 12px;
-    background: #1d1d1d;
-    color: #ddd;
-    font-size: 15px;
-}
-
-.info {
-    color: #999;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.preview {
-    width: 100%;
-    margin-top: 20px;
-    border-radius: 15px;
-    background: black;
-    display: none;
-}
-
-.logo-nyrox {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    height: auto;
-    margin: 30px auto 5px;
-    border-radius: 12px;
-}
-
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
-        align-items: flex-start;
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    .app {
-        margin-top: 10px;
-        padding: 20px 15px;
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
     }
 
     h1 {
-        font-size: 26px;
+      text-align: center;
+      margin-bottom: 20px;
     }
 
-    .timer {
-        font-size: 40px;
+    .widget {
+      background: #1f2937;
+      border-radius: 25px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0,0,0,.35);
+      margin-bottom: 20px;
+    }
+
+    .time {
+      font-size: 55px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .date {
+      margin-top: 10px;
+      font-size: 17px;
+      opacity: .8;
+    }
+
+    .settings {
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      margin-top: 15px;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    input,
+    select {
+      background: #374151;
+      color: white;
     }
 
     button {
-        font-size: 16px;
-        padding: 15px;
+      margin-top: 18px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
     }
 
-    .logo-nyrox {
-        max-width: 260px;
+    button:hover {
+      background: #1d4ed8;
     }
-}
-</style>
+
+    .reset {
+      background: #4b5563;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="app">
+  <div class="container">
 
-    <h1>🎥 Enregistreur d'écran</h1>
+    <h1>🕐 Mon Widget</h1>
 
-    <div class="by">BY NYROX</div>
-
-    <div class="timer" id="timer">00:00</div>
-
-    <button class="start" id="startBtn">
-        🔴 Démarrer l'enregistrement
-    </button>
-
-    <button class="stop" id="stopBtn" disabled>
-        ⏹️ Arrêter
-    </button>
-
-    <button class="download" id="downloadBtn">
-        📥 Télécharger la vidéo
-    </button>
-
-    <div class="status" id="status">
-        Prêt à enregistrer.
+    <!-- Widget -->
+    <div class="widget">
+      <div class="time" id="clock">12:00:00</div>
+      <div class="date" id="date">Vendredi 4 septembre 2026</div>
     </div>
 
-    <video
-        class="preview"
-        id="preview"
-        controls
-        playsinline>
-    </video>
+    <!-- Paramètres -->
+    <div class="settings">
 
-    <div class="info">
-        📱 Compatible téléphone lorsque le navigateur autorise
-        la capture d'écran.
-        <br>
-        Choisis ton écran après avoir appuyé sur Démarrer.
+      <label for="timeInput">Modifier l'heure affichée</label>
+      <input type="time" id="timeInput">
+
+      <label for="format">Format</label>
+      <select id="format">
+        <option value="24">24 heures</option>
+        <option value="12">12 heures</option>
+      </select>
+
+      <label for="color">Couleur de l'heure</label>
+      <input type="color" id="color" value="#ffffff">
+
+      <button onclick="applySettings()">
+        Appliquer
+      </button>
+
+      <button class="reset" onclick="resetClock()">
+        Réinitialiser
+      </button>
+
     </div>
 
-    <img
-        src="by-nyrox.png"
-        alt="BY NYROX"
-        class="logo-nyrox">
+  </div>
 
-</div>
+  <script>
+    let customTime = null;
+    let useCustomTime = false;
 
-<script>
+    const clock = document.getElementById("clock");
+    const dateElement = document.getElementById("date");
+    const timeInput = document.getElementById("timeInput");
+    const formatSelect = document.getElementById("format");
+    const colorInput = document.getElementById("color");
 
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const status = document.getElementById("status");
-const timer = document.getElementById("timer");
-const preview = document.getElementById("preview");
+    function updateClock() {
+      let now = new Date();
 
-let mediaStream = null;
-let mediaRecorder = null;
-let recordedChunks = [];
+      if (useCustomTime && customTime) {
+        now.setHours(customTime.hours);
+        now.setMinutes(customTime.minutes);
+        now.setSeconds(customTime.seconds);
 
-let timerInterval = null;
-let timerStartTime = 0;
+        customTime.seconds++;
 
-let recordedBlob = null;
+        if (customTime.seconds >= 60) {
+          customTime.seconds = 0;
+          customTime.minutes++;
 
+          if (customTime.minutes >= 60) {
+            customTime.minutes = 0;
+            customTime.hours++;
 
-/* =========================
-   MINUTEUR
-========================= */
-
-function startTimer() {
-
-    timerStartTime = Date.now();
-
-    timer.textContent = "00:00";
-
-    clearInterval(timerInterval);
-
-    timerInterval = setInterval(() => {
-
-        const elapsed = Math.floor(
-            (Date.now() - timerStartTime) / 1000
-        );
-
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-
-        timer.textContent =
-            String(minutes).padStart(2, "0") +
-            ":" +
-            String(seconds).padStart(2, "0");
-
-    }, 250);
-}
-
-
-function stopTimer() {
-
-    clearInterval(timerInterval);
-    timerInterval = null;
-}
-
-
-/* =========================
-   FORMAT VIDÉO
-========================= */
-
-function getSupportedMimeType() {
-
-    const types = [
-        "video/webm;codecs=vp9,opus",
-        "video/webm;codecs=vp8,opus",
-        "video/webm",
-        "video/mp4"
-    ];
-
-    for (const type of types) {
-
-        if (
-            typeof MediaRecorder !== "undefined" &&
-            MediaRecorder.isTypeSupported(type)
-        ) {
-            return type;
-        }
-    }
-
-    return "";
-}
-
-
-/* =========================
-   DÉMARRER
-========================= */
-
-startBtn.addEventListener("click", async () => {
-
-    recordedChunks = [];
-    recordedBlob = null;
-
-    downloadBtn.style.display = "none";
-    preview.style.display = "none";
-
-    if (
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getDisplayMedia
-    ) {
-
-        status.textContent =
-            "❌ La capture d'écran n'est pas prise en charge par ce navigateur.";
-
-        return;
-    }
-
-    if (typeof MediaRecorder === "undefined") {
-
-        status.textContent =
-            "❌ Ton navigateur ne permet pas l'enregistrement vidéo.";
-
-        return;
-    }
-
-    try {
-
-        status.textContent =
-            "📱 Choisis maintenant l'écran à partager...";
-
-
-        mediaStream =
-            await navigator.mediaDevices.getDisplayMedia({
-
-                video: true,
-
-                /* Audio désactivé pour une meilleure
-                   compatibilité avec les téléphones */
-
-                audio: false
-            });
-
-
-        const mimeType = getSupportedMimeType();
-
-        if (!mimeType) {
-
-            status.textContent =
-                "❌ Aucun format vidéo compatible.";
-
-            mediaStream
-                .getTracks()
-                .forEach(track => track.stop());
-
-            return;
-        }
-
-
-        mediaRecorder = new MediaRecorder(
-            mediaStream,
-            {
-                mimeType: mimeType
+            if (customTime.hours >= 24) {
+              customTime.hours = 0;
             }
-        );
+          }
+        }
+      }
 
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      let seconds = now.getSeconds();
 
-        mediaRecorder.ondataavailable = (event) => {
+      if (formatSelect.value === "12") {
+        const period = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12 || 12;
 
-            if (
-                event.data &&
-                event.data.size > 0
-            ) {
+        clock.textContent =
+          `${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)} ${period}`;
+      } else {
+        clock.textContent =
+          `${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}`;
+      }
 
-                recordedChunks.push(event.data);
-            }
+      const options = {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      };
+
+      dateElement.textContent =
+        now.toLocaleDateString("fr-FR", options);
+    }
+
+    function twoDigits(number) {
+      return String(number).padStart(2, "0");
+    }
+
+    function applySettings() {
+      const selectedTime = timeInput.value;
+
+      if (selectedTime) {
+        const [hours, minutes] = selectedTime.split(":");
+
+        customTime = {
+          hours: Number(hours),
+          minutes: Number(minutes),
+          seconds: 0
         };
 
+        useCustomTime = true;
+      }
 
-        mediaRecorder.onstop = () => {
-
-            stopTimer();
-
-            if (recordedChunks.length === 0) {
-
-                status.textContent =
-                    "❌ Aucun enregistrement n'a été créé.";
-
-                return;
-            }
-
-
-            recordedBlob = new Blob(
-                recordedChunks,
-                {
-                    type: mimeType
-                }
-            );
-
-
-            const videoURL =
-                URL.createObjectURL(recordedBlob);
-
-            preview.src = videoURL;
-            preview.style.display = "block";
-
-            downloadBtn.style.display = "block";
-
-            status.textContent =
-                "✅ Enregistrement terminé !";
-        };
-
-
-        /* Si l'utilisateur arrête le partage */
-
-        const videoTrack =
-            mediaStream.getVideoTracks()[0];
-
-
-        if (videoTrack) {
-
-            videoTrack.addEventListener(
-                "ended",
-                () => {
-
-                    if (
-                        mediaRecorder &&
-                        mediaRecorder.state !== "inactive"
-                    ) {
-                        mediaRecorder.stop();
-                    }
-
-                    stopTimer();
-
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
-                }
-            );
-        }
-
-
-        /* =========================
-           DÉMARRAGE DE L'ENREGISTREMENT
-        ========================= */
-
-        mediaRecorder.start(1000);
-
-        /* LE MINUTEUR COMMENCE ICI */
-
-        startTimer();
-
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
-
-        status.textContent =
-            "🔴 Enregistrement en cours...";
-
+      clock.style.color = colorInput.value;
     }
 
-    catch (error) {
-
-        console.error(error);
-
-        stopTimer();
-
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
-
-
-        if (error.name === "NotAllowedError") {
-
-            status.textContent =
-                "❌ Capture annulée. Autorise le partage d'écran.";
-
-        } else if (error.name === "NotFoundError") {
-
-            status.textContent =
-                "❌ Aucun écran disponible.";
-
-        } else if (error.name === "NotReadableError") {
-
-            status.textContent =
-                "❌ L'écran ne peut pas être capturé.";
-
-        } else {
-
-            status.textContent =
-                "❌ Enregistrement impossible sur cet appareil.";
-        }
+    function resetClock() {
+      useCustomTime = false;
+      customTime = null;
+      timeInput.value = "";
+      clock.style.color = "#ffffff";
+      colorInput.value = "#ffffff";
     }
 
-});
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
 
-
-/* =========================
-   ARRÊTER
-========================= */
-
-stopBtn.addEventListener("click", () => {
-
-    if (
-        mediaRecorder &&
-        mediaRecorder.state !== "inactive"
-    ) {
-        mediaRecorder.stop();
-    }
-
-
-    if (mediaStream) {
-
-        mediaStream
-            .getTracks()
-            .forEach(track => track.stop());
-
-        mediaStream = null;
-    }
-
-
-    stopTimer();
-
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-});
-
-
-/* =========================
-   TÉLÉCHARGER
-========================= */
-
-downloadBtn.addEventListener("click", () => {
-
-    if (!recordedBlob) {
-        return;
-    }
-
-
-    const url =
-        URL.createObjectURL(recordedBlob);
-
-
-    const extension =
-        recordedBlob.type.includes
+</body>
+</html>
